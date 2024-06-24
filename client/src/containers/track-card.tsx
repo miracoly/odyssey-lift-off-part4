@@ -1,27 +1,48 @@
 import React from "react";
 import styled from "@emotion/styled";
-import { colors, mq } from "../styles";
-import { humanReadableTimeFromSeconds } from "../utils/helpers";
-import { Link } from "react-router-dom";
-import type { Track } from "../__generated__/graphql";
+import {colors, mq} from "../styles";
+import {humanReadableTimeFromSeconds} from "../utils/helpers";
+import {Link} from "react-router-dom";
+import type {Track} from "../__generated__/graphql";
+import {gql} from '../__generated__';
+import {useMutation} from '@apollo/client';
+
+const INCREMENT_TRACK_VIEWS = gql(`
+  mutation IncrementTrackViews($incrementTrackViewsId: ID!) {
+    incrementTrackViews(id: $incrementTrackViewsId) {
+      code
+      success
+      message
+      track {
+        id
+        numberOfViews
+      }
+    }
+  }
+`);
 
 /**
  * Track Card component renders basic info in a card format
  * for each track populating the tracks grid homepage.
  */
-const TrackCard: React.FC<{ track: Omit<Track, "modules"> }> = ({ track }) => {
-  const { title, thumbnail, author, length, modulesCount, id } = track;
+const TrackCard: React.FC<{ track: Omit<Track, "modules"> }> = ({track}) => {
+  const {title, thumbnail, author, length, modulesCount, id} = track;
+
+  const [incrementTrackViews] = useMutation(INCREMENT_TRACK_VIEWS, {
+    variables: {incrementTrackViewsId: id},
+    onCompleted: (data) => console.log(data)
+  });
 
   return (
-    <CardContainer to={`/track/${id}`}>
+    <CardContainer to={`/track/${id}`} onClick={() => incrementTrackViews()}>
       <CardContent>
         <CardImageContainer>
-          <CardImage src={thumbnail || ""} alt={title} />
+          <CardImage src={thumbnail || ""} alt={title}/>
         </CardImageContainer>
         <CardBody>
           <CardTitle>{title || ""}</CardTitle>
           <CardFooter>
-            <AuthorImage src={author.photo || ""} />
+            <AuthorImage src={author.photo || ""}/>
             <AuthorAndTrack>
               <AuthorName>{author.name}</AuthorName>
               <TrackLength>
